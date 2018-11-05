@@ -20,10 +20,10 @@ class BasicEstimator:
         self.xdim = 2 * (N + M) # размерность целевой переменной
         # Соберем необходимые названия переменных.
         self.names = []
-        self.names += ['q_oil_e_%d' % m for m in range(M)]
-        self.names += ['q_oil_d_%d' % m for m in range(M)]
-        self.names += ['q_petr_e_%d' % n for n in range(N)]
-        self.names += ['q_petr_d_%d' % n for n in range(N)]
+        self.names += ['q_oil_e_%d' % (m + 1) for m in range(M)]
+        self.names += ['q_oil_d_%d' % (m + 1) for m in range(M)]
+        self.names += ['q_petr_e_%d' % (n + 1) for n in range(N)]
+        self.names += ['q_petr_d_%d' % (n + 1) for n in range(N)]
         # Тип для переменной-результата.
         self.ResultType = namedtuple('Quantities', self.names)
 
@@ -182,10 +182,10 @@ class BasicEstimator:
         self._stack_ub(A, b)
 
 # Ограничение 6: объемы внутреннего сбыта нефти не превышают сумму переработанной нефти на всех НПЗ
-    def constraint_oil_ref(self, q_oil_exp=None):
-        if q_oil_exp is not None:
-            self.param_dict['q_oil_exp'] = q_oil_exp
-        q_oil_exp = self.param_dict['q_oil_exp']
+    def constraint_oil_ref(self, q_oil_ref=None):
+        if q_oil_ref is not None:
+            self.param_dict['q_oil_ref'] = q_oil_exp
+        q_oil_ref = self.param_dict['q_oil_ref']
 
         M = self.M
         A = np.zeros(shape=(1, self.xdim), dtype=np.float32)
@@ -282,7 +282,7 @@ class BasicEstimator:
         self.A_eq, self.b_eq = \
             self._stack_constraints(A, b, self.A_eq, self.b_eq)
 
-
+# Пример
 if __name__ == '__main__':
     # defines for test case
     prod_capacity = [970000, 313000, 308000, 136000] # барр. н. э./сут, мощность добычи
