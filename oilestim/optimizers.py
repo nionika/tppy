@@ -3,13 +3,13 @@
 
 # python2.7 ocmpatibility
 from __future__ import print_function, division, unicode_literals
-
 from collections import namedtuple
 import numpy as np
 from scipy.optimize import linprog
 
+
 class BasicEstimator:
-    b_t = 0.1364
+    b_t = 0.1364 # Коэффициент перевода баррелей в тонны
 
     def __init__(self, N, M, **kwargs):
         '''param N: количество нефтеперерабатывающих заводов
@@ -56,6 +56,8 @@ class BasicEstimator:
         print(self.name, ':', self.res)
         return self.res
 
+    # Ограничение 1(1): сумма объемов добытой нефти на месторождении m,
+# идущая на экспорт и внутреннее потребление не превышает мощность добычи месторождения m
     def constraint_prod_capacity(self, prod_capacity=None):
         N = self.N
         M = self.M
@@ -78,6 +80,8 @@ class BasicEstimator:
         
         self._stack_ub(A, b)
 
+# Ограничение 1(2): сумма объемов добытой нефти на месторождении m,
+# идущая на экспорт и внутреннее потребление не превышает объем добычи месторождения m
     def constraint_q_oil(self, q_oil=None):
         N = self.N
         M = self.M
@@ -101,6 +105,8 @@ class BasicEstimator:
         
         self._stack_ub(A, b)
 
+# Ограничение 2: сумма объемов нефти добытой на месторождении m и доставленной на НПЗ n
+# не превышает установленную мощность НПЗ n
     def constraint_ref_capacity(self, alpha=None, ref_capacity=None):
         N = self.N
         M = self.M
@@ -134,6 +140,8 @@ class BasicEstimator:
         
         self._stack_ub(A, b)
 
+# Ограничение 3: сумма объемов нефти добытой на месторождении m и доставленной на НПЗ n
+# больше, чем объем производства на НПЗ n нефтепродуктов (бензина и мазута)
     def constraint_ref_yield(self, alpha=None, ref_yield=None):
         N = self.N
         M = self.M
@@ -156,10 +164,12 @@ class BasicEstimator:
             A[n, 2 * M + N + n] = 100 / (ref_yield[n])
         self._stack_ub(A, b)
 
+# Ограничение 4: объемы реализации нефти и нп на экспорт и на внутренний рынок положительные
     def constraint_non_negative(self):
         self._stack_ub(-np.eye(self.xdim, dtype=np.float32), 
                        np.zeros(self.xdim, dtype=np.float32))
 
+# Ограничение 5: сумма объемов экспорта нефти с месторождений не превышает спрос
     def constraint_oil_exp(self, q_oil_exp=None):
         if q_oil_exp is not None:
             self.param_dict['q_oil_exp'] = q_oil_exp
@@ -171,6 +181,7 @@ class BasicEstimator:
 
         self._stack_ub(A, b)
 
+# Ограничение 6: объемы внутреннего сбыта нефти не превышают сумму переработанной нефти на всех НПЗ
     def constraint_oil_ref(self, q_oil_exp=None):
         if q_oil_exp is not None:
             self.param_dict['q_oil_exp'] = q_oil_exp
@@ -183,6 +194,7 @@ class BasicEstimator:
         b = np.array([np.array([q_oil_ref]).sum()]) # -1?
         self._stack_ub(A, b)
 
+# Ограничение 7: сумма объемов внутреннего сбыта нефтепродуктов не превышают спрос
     def constraint_petr_dom_demand(self, q_petr_dom=None):
         if q_petr_dom is not None:
             self.param_dict['q_petr_dom'] = q_petr_dom
@@ -195,6 +207,7 @@ class BasicEstimator:
             A[0, 2 * M + N + n] = 1
         self._stack_ub(A, b)
 
+# Ограничение 8: объемы сбыта нефтепродуктов на экспорт не превышают спрос
     def constraint_petr_exp_demand(self, q_petr_exp=None):
         if q_petr_exp is not None:
             self.param_dict['q_petr_exp'] = q_petr_exp
@@ -211,6 +224,7 @@ class BasicEstimator:
     def update_params(self, **kwargs):
         self.param_dict.update(kwargs)
 
+#  Заполняем столбец p
     def calculate_price(self, **kwargs):
         self.param_dict.update(kwargs)
         p_oil_exp = self.param_dict['p_oil_exp']
