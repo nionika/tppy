@@ -10,15 +10,23 @@ Created on Mon Nov  5 15:17:24 2018
 import pandas as pd 
 import numpy as np
 
+# Путь до файла с данными
 file = "/Users/evgeniyamiller/Documents/GitHub/tppy/oilestim/data_for_est_oil.csv"
 
+# Путь до файла с результатами
+file_res = "/Users/evgeniyamiller/Documents/GitHub/tppy/oilestim/data_res_oil.csv"
+d_res = {}
+
+# Матрицы расстояний месторождений и НПЗ
 alpha = np.matrix([[0.402054292, 0.241746148, 0.35619956, 0],
                [0, 0, 0, 1],
                [0, 0.213396562, 0.786603438, 0],
                [0, 0.966403162, 0.033596838, 0]],
               dtype=np.float32)
 
+year = [2014, 2015, 2016, 2017]
 
+# Функция чтения файла с данными в словарь
 def load_file_into_dict(file):
     df = pd.read_csv(file, delimiter=';', index_col="year", decimal=",")
     d = df.to_dict('index')
@@ -40,3 +48,7 @@ def load_file_into_dict(file):
             d[n]['alpha'] = alpha
                 
     return d
+
+def store_res_into_file(file_res, results):
+    df = pd.DataFrame.from_dict(results, orient='index')
+    df.to_csv(file_res, sep=';', decimal=',', encoding='utf-8')      
